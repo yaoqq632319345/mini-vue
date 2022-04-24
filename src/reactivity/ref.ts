@@ -38,3 +38,17 @@ export function isRef(val) {
 export function unRef(val) {
   return isRef(val) ? val.value : val;
 }
+export function proxyRefs(raw) {
+  return new Proxy(raw, {
+    get(target, key) {
+      return unRef(Reflect.get(target, key)); // 直接解包
+    },
+    set(target, key, value) {
+      if (isRef(target[key]) && !isRef(value)) {
+        return (target[key].value = value);
+      } else {
+        return Reflect.set(target, key, value);
+      }
+    },
+  });
+}

@@ -1,5 +1,5 @@
 import { effect } from '../effect';
-import { ref, isRef, unRef } from '../ref';
+import { ref, isRef, unRef, proxyRefs } from '../ref';
 
 describe('Ref', () => {
   it('ref', () => {
@@ -61,5 +61,30 @@ describe('Ref', () => {
     expect(unRef(1)).toBe(1);
     expect(unRef(b)).toStrictEqual(b);
     expect(unRef(c)).toStrictEqual(b);
+  });
+
+  it('proxyRefs', () => {
+    const user: any = {
+      age: ref(18),
+      name: '王大',
+    };
+    // get
+    const proxyUser = proxyRefs(user);
+    expect(user.age.value).toBe(18);
+    expect(proxyUser.age).toBe(18);
+    expect(proxyUser.name).toBe('王大');
+    // set
+    proxyUser.age = 100;
+    proxyUser.name = '王二';
+    expect(user.age.value).toBe(100);
+    expect(proxyUser.age).toBe(100);
+    expect(proxyUser.name).toBe('王二');
+    // set ref
+    proxyUser.age = ref(180);
+    proxyUser.name = ref('王三');
+    expect(user.age.value).toBe(180);
+    expect(proxyUser.age).toBe(180);
+    expect(proxyUser.name).toBe('王三');
+    expect(user.name.value).toBe('王三');
   });
 });
