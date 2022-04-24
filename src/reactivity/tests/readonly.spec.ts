@@ -1,4 +1,4 @@
-import { isReactive, isReadonly, readonly } from '../reactive';
+import { isProxy, isReactive, isReadonly, readonly } from '../reactive';
 
 describe('readonly', () => {
   it('核心实现', () => {
@@ -13,6 +13,8 @@ describe('readonly', () => {
 
     expect(isReactive(origin)).toBe(false);
     expect(isReactive(wrap)).toBe(false);
+
+    expect(isProxy(wrap)).toBe(true);
   });
 
   it('set 警告', () => {

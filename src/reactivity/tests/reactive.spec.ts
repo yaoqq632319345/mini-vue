@@ -1,4 +1,4 @@
-import { isReactive, isReadonly, reactive } from '../reactive';
+import { isProxy, isReactive, isReadonly, reactive } from '../reactive';
 
 describe('reactive', () => {
   it('happy path', () => {
@@ -14,6 +14,8 @@ describe('reactive', () => {
 
     expect(isReadonly(observed)).toBe(false);
     expect(isReadonly(ori)).toBe(false);
+
+    expect(isProxy(observed)).toBe(true);
   });
 
   test('多级reactive', () => {

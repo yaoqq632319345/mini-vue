@@ -31,3 +31,7 @@ export function isReactive(raw) {
 export function isReadonly(raw) {
   return !!raw[ReactiveFlags.isReadonly];
 }
+
+export function isProxy(raw) {
+  return isReactive(raw) || isReadonly(raw);
+}
