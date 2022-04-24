@@ -45,6 +45,10 @@ export function track(target, key) {
     depsMap.set(key, dep);
   }
 
+  trackEffects(dep);
+}
+export function trackEffects(dep) {
+  if (!isTracking()) return;
   if (dep.has(activeEffect)) return; // 解决 问题 - reactivity - effect - 01
   dep.add(activeEffect);
   activeEffect.deps.push(dep);
@@ -55,6 +59,9 @@ function isTracking() {
 export function trigger(target, key) {
   const dep = targetMap.get(target).get(key);
 
+  triggerEffects(dep);
+}
+export function triggerEffects(dep) {
   for (const effect of dep) {
     if (effect.scheduler) {
       effect.scheduler();
