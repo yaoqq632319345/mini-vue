@@ -1,4 +1,4 @@
-import { reactive } from '../reactive';
+import { isReactive, isReadonly, reactive } from '../reactive';
 
 describe('reactive', () => {
   it('happy path', () => {
@@ -8,5 +8,11 @@ describe('reactive', () => {
     expect(observed).not.toBe(ori);
 
     expect(observed.foo).toBe(1);
+
+    expect(isReactive(observed)).toBe(true);
+    expect(isReactive(ori)).toBe(false);
+
+    expect(isReadonly(observed)).toBe(false);
+    expect(isReadonly(ori)).toBe(false);
   });
 });
