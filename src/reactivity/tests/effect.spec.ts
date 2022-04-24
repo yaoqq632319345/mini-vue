@@ -1,7 +1,7 @@
-import { effect } from '../effect';
+import { effect, stop } from '../effect';
 import { reactive } from '../reactive';
 
-describe('effect', () => {
+describe('effect 副作用模块', () => {
   it('核心模块', () => {
     const user = reactive({
       age: 10,
@@ -48,5 +48,35 @@ describe('effect', () => {
     expect(dummy).toBe(1);
     run();
     expect(dummy).toBe(2);
+  });
+
+  it('stop 方法', () => {
+    let dummy;
+    const obj = reactive({ foo: 1 });
+    const runner = effect(() => (dummy = obj.foo));
+    obj.foo = 2;
+    expect(dummy).toBe(2);
+    // 停止后不再更新
+    stop(runner);
+    obj.foo = 3;
+    expect(dummy).toBe(2);
+
+    // 手动触发
+    runner();
+    expect(dummy).toBe(3);
+  });
+
+  it('onStop 回调函数', () => {
+    const obj = reactive({ foo: 1 });
+    const onStop = jest.fn();
+    let dummy;
+    const runner = effect(
+      () => {
+        dummy = obj.foo;
+      },
+      { onStop }
+    );
+    stop(runner);
+    expect(onStop).toBeCalledTimes(1);
   });
 });
