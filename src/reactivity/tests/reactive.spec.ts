@@ -31,4 +31,11 @@ describe('reactive', () => {
     expect(isReactive(observed.array[0])).toBe(true);
     expect(observed.array[0].baz).toBe(2);
   });
+
+  it('包装单值', () => {
+    console.warn = jest.fn();
+    const count = reactive(100);
+    expect(count).toBe(100);
+    expect(console.warn).toBeCalled();
+  });
 });

@@ -1,3 +1,4 @@
+import { isObject } from './../shared/index';
 import {
   readonlyHandlers,
   mutableHandlers,
@@ -9,7 +10,9 @@ export const enum ReactiveFlags {
   isReadonly = '__v_isReadonly',
 }
 export function reactive(raw) {
-  return new Proxy(raw, mutableHandlers);
+  if (isObject(raw)) return new Proxy(raw, mutableHandlers);
+  console.warn(`单值无法通过reactive 包装成响应式`);
+  return raw;
 }
 
 export function readonly(raw) {
