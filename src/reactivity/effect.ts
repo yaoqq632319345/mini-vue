@@ -1,4 +1,6 @@
 import { extend } from './../shared/index';
+let activeEffect;
+const targetMap = new WeakMap();
 export class ReactiveEffect {
   private _fn: Function;
   deps = [];
@@ -28,9 +30,10 @@ function cleanUpEffect(effect) {
 
   effect.deps.length = 0;
 }
-let activeEffect;
-const targetMap = new WeakMap();
+
 export function track(target, key) {
+  if (!isTracking()) return;
+
   let depsMap = targetMap.get(target);
   if (!depsMap) {
     depsMap = new Map();
@@ -41,9 +44,13 @@ export function track(target, key) {
     dep = new Set<ReactiveEffect>();
     depsMap.set(key, dep);
   }
-  if (!activeEffect) return;
+
+  if (dep.has(activeEffect)) return; // 解决 问题 - reactivity - effect - 01
   dep.add(activeEffect);
   activeEffect.deps.push(dep);
+}
+function isTracking() {
+  return activeEffect !== undefined && activeEffect.active;
 }
 export function trigger(target, key) {
   const dep = targetMap.get(target).get(key);

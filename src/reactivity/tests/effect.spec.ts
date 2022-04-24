@@ -58,7 +58,7 @@ describe('effect 副作用模块', () => {
     expect(dummy).toBe(2);
     // 停止后不再更新
     stop(runner);
-    obj.foo = 3;
+    obj.foo++; //重新触发依赖收集，会有问题
     expect(dummy).toBe(2);
 
     // 手动触发
