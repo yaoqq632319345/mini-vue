@@ -34,11 +34,11 @@ describe('computed', () => {
     expect(getter).toHaveBeenCalledTimes(1);
 
     expect(c.value).toBe(1000);
-    // 触发get, 2次调用
+    // // 触发get, 2次调用
     expect(getter).toHaveBeenCalledTimes(2);
 
     c.value;
-    // 再次触发，因为有缓存，还是调用2次
+    // // 再次触发，因为有缓存，还是调用2次
     expect(getter).toHaveBeenCalledTimes(2);
   });
 });
