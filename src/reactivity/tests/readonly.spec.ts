@@ -7,9 +7,12 @@ describe('readonly', () => {
     expect(wrap).not.toBe(origin);
     expect(wrap.foo).toBe(1);
     expect(isReadonly(wrap)).toBe(true);
-    expect(isReactive(wrap)).toBe(false);
+    expect(isReadonly(wrap.bar)).toBe(true);
     expect(isReadonly(origin)).toBe(false);
+    expect(isReadonly(origin.bar)).toBe(false);
+
     expect(isReactive(origin)).toBe(false);
+    expect(isReactive(wrap)).toBe(false);
   });
 
   it('set 警告', () => {
