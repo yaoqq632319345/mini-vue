@@ -19,7 +19,7 @@ function processElement(vnode, container) {
 }
 function mountElement(vnode, container) {
   const { type, props, children } = vnode;
-  const el: HTMLElement = document.createElement(type);
+  const el: HTMLElement = (vnode.el = document.createElement(type));
   for (let k in props) {
     el.setAttribute(k, props[k]);
   }
@@ -46,9 +46,11 @@ function mountComponent(vnode: any, container) {
   setupRenderEffect(instance, container);
 }
 function setupRenderEffect(instance: any, container) {
-  const subTree = instance.render();
+  const subTree = instance.render.call(instance.proxy);
 
   // 也是调用patch
-
   patch(subTree, container);
+
+  // 处理完毕子树之后，subtree.el 就会有值了
+  instance.vnode.el = subTree.el;
 }
