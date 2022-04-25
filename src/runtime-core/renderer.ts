@@ -4,10 +4,39 @@ export function render(vnode: any, rootContainer) {
   patch(vnode, rootContainer);
 }
 function patch(vnode: any, rootContainer: any) {
-  processComponent(vnode, rootContainer);
+  const { type } = vnode;
+  if (typeof type === 'string') {
+    // 处理真实element
+    processElement(vnode, rootContainer);
+  } else {
+    processComponent(vnode, rootContainer);
+  }
 }
+
+// 元素处理逻辑
+function processElement(vnode, container) {
+  mountElement(vnode, container); // 初始化逻辑
+}
+function mountElement(vnode, container) {
+  const { type, props, children } = vnode;
+  const el: HTMLElement = document.createElement(type);
+  for (let k in props) {
+    el.setAttribute(k, props[k]);
+  }
+  if (typeof children === 'string') {
+    el.textContent = children;
+  } else if (Array.isArray(children)) {
+    children.forEach((v) => {
+      patch(v, el);
+    });
+  }
+
+  container.append(el);
+}
+
+// 组件处理逻辑
 function processComponent(vnode, container) {
-  mountComponent(vnode, container);
+  mountComponent(vnode, container); // 初始化逻辑
 }
 function mountComponent(vnode: any, container) {
   const instance = createComponentInstance(vnode);
