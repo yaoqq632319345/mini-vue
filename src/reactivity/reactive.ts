@@ -10,19 +10,17 @@ export const enum ReactiveFlags {
   isReadonly = '__v_isReadonly',
 }
 export function reactive(raw) {
-  if (isObject(raw)) return new Proxy(raw, mutableHandlers);
-  console.warn(`单值无法通过reactive 包装成响应式`);
-  return raw;
+  return createReactiveObject(raw, mutableHandlers);
 }
 
 export function readonly(raw) {
-  return new Proxy(raw, readonlyHandlers);
+  return createReactiveObject(raw, readonlyHandlers);
 }
 export function shallowReadonly(raw) {
-  return new Proxy(raw, shallowReadonlyHandlers);
+  return createReactiveObject(raw, shallowReadonlyHandlers);
 }
 export function shallowReactive(raw) {
-  return new Proxy(raw, shallowReativeHandlers);
+  return createReactiveObject(raw, shallowReativeHandlers);
 }
 export function isReactive(raw) {
   return !!raw[ReactiveFlags.isReactive];
@@ -34,4 +32,10 @@ export function isReadonly(raw) {
 
 export function isProxy(raw) {
   return isReactive(raw) || isReadonly(raw);
+}
+
+export function createReactiveObject(target, baseHandlers) {
+  if (isObject(target)) return new Proxy(target, baseHandlers);
+  console.warn(`单值无法通过reactive 包装成响应式`);
+  return target;
 }
