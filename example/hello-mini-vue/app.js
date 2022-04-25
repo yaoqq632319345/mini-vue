@@ -8,9 +8,18 @@ export const App = {
       {
         id: 'root',
         class: ['red', 'h100'],
+        onClick() {
+          console.log('click');
+        },
+        onMousedown() {
+          console.log('mousedown');
+        },
       },
       // [h('p', {}, 'hello'), h('p', {}, 'mini-vue')]
       'hi, ' + this.msg
     );
+  },
+  setup() {
+    return { msg: 'mini-vue' };
   },
 };

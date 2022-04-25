@@ -22,7 +22,15 @@ function mountElement(vnode, container) {
   const { type, props, children, shapFlag } = vnode;
   const el: HTMLElement = (vnode.el = document.createElement(type));
   for (let k in props) {
-    el.setAttribute(k, props[k]);
+    const val = props[k];
+    const isOn = (k: string) => /^on[A-Z]/.test(k);
+    if (isOn(k)) {
+      // 代表事件
+      const event = k.slice(2).toLowerCase();
+      el.addEventListener(event, val);
+    } else {
+      el.setAttribute(k, val);
+    }
   }
   if (shapFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
