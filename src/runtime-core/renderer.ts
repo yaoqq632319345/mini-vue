@@ -1,14 +1,15 @@
+import { ShapeFlags } from '../shared/ShapeFlags';
 import { createComponentInstance, setupComponent } from './component';
 
 export function render(vnode: any, rootContainer) {
   patch(vnode, rootContainer);
 }
 function patch(vnode: any, rootContainer: any) {
-  const { type } = vnode;
-  if (typeof type === 'string') {
+  const { shapFlag } = vnode;
+  if (shapFlag & ShapeFlags.ELEMENT) {
     // 处理真实element
     processElement(vnode, rootContainer);
-  } else {
+  } else if (shapFlag & ShapeFlags.STATEFUL_COMPONENT) {
     processComponent(vnode, rootContainer);
   }
 }
@@ -18,14 +19,14 @@ function processElement(vnode, container) {
   mountElement(vnode, container); // 初始化逻辑
 }
 function mountElement(vnode, container) {
-  const { type, props, children } = vnode;
+  const { type, props, children, shapFlag } = vnode;
   const el: HTMLElement = (vnode.el = document.createElement(type));
   for (let k in props) {
     el.setAttribute(k, props[k]);
   }
-  if (typeof children === 'string') {
+  if (shapFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
-  } else if (Array.isArray(children)) {
+  } else if (shapFlag & ShapeFlags.ARRAY_CHILDREN) {
     children.forEach((v) => {
       patch(v, el);
     });
