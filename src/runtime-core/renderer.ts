@@ -4,7 +4,12 @@ import { createComponentInstance, setupComponent } from './component';
 import { createAppAPI } from './createApp';
 
 export function createRenderer(options) {
-  const { createElement, patchProp, insert, createTextNode } = options;
+  const {
+    createElement: hostCreateElement,
+    patchProp: hostPatchProp,
+    insert: hostInsert,
+    createTextNode: hostCreateTextNode,
+  } = options;
   function render(vnode: any, rootContainer) {
     patch(vnode, rootContainer, null);
   }
@@ -28,8 +33,8 @@ export function createRenderer(options) {
   }
   function processTextVNode(vnode, container) {
     const { children } = vnode;
-    const textNode = (vnode.el = createTextNode(children));
-    insert(textNode, container);
+    const textNode = (vnode.el = hostCreateTextNode(children));
+    hostInsert(textNode, container);
   }
   // 只渲染子元素
   function processFragment(vnode, container, parentComponent) {
@@ -42,10 +47,10 @@ export function createRenderer(options) {
   }
   function mountElement(vnode, container, parentComponent) {
     const { type, props, children, shapeFlag } = vnode;
-    const el: HTMLElement = (vnode.el = createElement(type));
+    const el: HTMLElement = (vnode.el = hostCreateElement(type));
     for (let k in props) {
       const val = props[k];
-      patchProp(el, k, val);
+      hostPatchProp(el, k, val);
     }
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       el.textContent = children;
@@ -53,7 +58,7 @@ export function createRenderer(options) {
       mountChildren(children, el, parentComponent);
     }
 
-    insert(el, container);
+    hostInsert(el, container);
   }
   function mountChildren(children, container, parentComponent) {
     children.forEach((v) => {
