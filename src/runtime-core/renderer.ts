@@ -5,11 +5,11 @@ export function render(vnode: any, rootContainer) {
   patch(vnode, rootContainer);
 }
 function patch(vnode: any, rootContainer: any) {
-  const { shapFlag } = vnode;
-  if (shapFlag & ShapeFlags.ELEMENT) {
+  const { shapeFlag } = vnode;
+  if (shapeFlag & ShapeFlags.ELEMENT) {
     // 处理真实element
     processElement(vnode, rootContainer);
-  } else if (shapFlag & ShapeFlags.STATEFUL_COMPONENT) {
+  } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
     processComponent(vnode, rootContainer);
   }
 }
@@ -19,7 +19,7 @@ function processElement(vnode, container) {
   mountElement(vnode, container); // 初始化逻辑
 }
 function mountElement(vnode, container) {
-  const { type, props, children, shapFlag } = vnode;
+  const { type, props, children, shapeFlag } = vnode;
   const el: HTMLElement = (vnode.el = document.createElement(type));
   for (let k in props) {
     const val = props[k];
@@ -32,9 +32,9 @@ function mountElement(vnode, container) {
       el.setAttribute(k, val);
     }
   }
-  if (shapFlag & ShapeFlags.TEXT_CHILDREN) {
+  if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
-  } else if (shapFlag & ShapeFlags.ARRAY_CHILDREN) {
+  } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
     children.forEach((v) => {
       patch(v, el);
     });

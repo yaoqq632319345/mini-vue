@@ -5,13 +5,15 @@ export function createVNode(type, props?, children?) {
     type,
     props,
     children,
-    shapFlag: getShapeFlag(type),
+    shapeFlag: getShapeFlag(type),
     el: null,
   };
   if (typeof children === 'string') {
-    vnode.shapFlag |= ShapeFlags.TEXT_CHILDREN;
+    vnode.shapeFlag |= ShapeFlags.TEXT_CHILDREN;
   } else if (Array.isArray(children)) {
-    vnode.shapFlag |= ShapeFlags.ARRAY_CHILDREN;
+    vnode.shapeFlag |= ShapeFlags.ARRAY_CHILDREN;
+  }
+
   }
   return vnode;
 }
