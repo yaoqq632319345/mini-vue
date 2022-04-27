@@ -146,16 +146,19 @@ export function createRenderer(options) {
       // 新旧都还有
       ___console(
         `======array -> array===== diff ===========`,
-        '\n' + `i:${i}--e1:${e1}--e2:${e2}`
+        '\n' +
+          `【 i 】表示不同元素的起点:${i}--【e1】表示老数组的终点:${e1}--【e2】表示新数组的终点:${e2}`
       );
 
-      // const toBePatched = e2 - i + 1;
+      let s1 = i, // c1起点
+        s2 = i; // c2起点
+      const toBePatched = e2 - s1 + 1; // 待处理的新数组个数
       const keyToNewIndexMap = new Map();
-      // const newIndexToOldIndexMap = new Array(toBePatched).fill(0);
-      for (let j = i; j <= e2; j++) {
+      const newIndexToOldIndexMap = new Array(toBePatched).fill(-1);
+      for (let j = s2; j <= e2; j++) {
         keyToNewIndexMap.set(c2[j].key, j);
       }
-      for (let j = i; j <= e1; j++) {
+      for (let j = s1; j <= e1; j++) {
         const n1 = c1[j];
         if (keyToNewIndexMap.size === 0) {
           hostRemove(n1.el);
@@ -167,9 +170,28 @@ export function createRenderer(options) {
         let n2;
         if (newIndex && isSameVNodeType(n1, (n2 = c2[newIndex]))) {
           keyToNewIndexMap.delete(oldKey);
+          newIndexToOldIndexMap[newIndex - s2] = j;
           patch(n1, n2, container, parentComponent, parentAnchor);
         } else {
           hostRemove(n1.el);
+        }
+      }
+      console.log(newIndexToOldIndexMap);
+      const increasingNewIndexSequence = getSequence(newIndexToOldIndexMap);
+      console.log(increasingNewIndexSequence);
+      for (let i = toBePatched - 1; i >= 0; i--) {
+        const nextIndex = i + s2; // 实际坐标
+        const nextChild = c2[nextIndex];
+        const anchor = nextIndex + 1 > c2.length ? null : c2[nextIndex + 1].el;
+        if (newIndexToOldIndexMap[i] === -1) {
+          // 新节点
+          patch(null, nextChild, container, parentComponent, anchor);
+        } else if (increasingNewIndexSequence.includes(i)) {
+          // 不需要移动
+          console.log('不需要移动');
+        } else {
+          console.log('移动');
+          hostInsert(nextChild.el, container, anchor);
         }
       }
     }
@@ -237,7 +259,7 @@ export function createRenderer(options) {
         const subTree = (instance.subTree = instance.render.call(
           instance.proxy
         ));
-        console.log('初始化subTree:', subTree);
+        // console.log('初始化subTree:', subTree);
 
         // 也是调用patch
         patch(null, subTree, container, instance, anchor);
@@ -249,14 +271,53 @@ export function createRenderer(options) {
         const subTree = (instance.subTree = instance.render.call(
           instance.proxy
         ));
-        console.log('更新subTree:', subTree);
+        // console.log('更新subTree:', subTree);
         patch(preSubTree, subTree, container, instance, anchor);
       }
-      console.log(`组件vnode:`, initialVNode);
+      // console.log(`组件vnode:`, initialVNode);
     });
   }
 
   return {
     createApp: createAppAPI(render),
   };
+}
+
+// 最长递增子序列
+function getSequence(nums) {
+  let len = nums.length;
+  let arr = [0];
+
+  let pre: any[] = [];
+
+  for (let i = 1; i < len; i++) {
+    const ln = arr.length;
+    if (nums[i] > nums[arr[ln - 1]]) {
+      pre[i] = arr[ln - 1];
+      arr.push(i);
+      continue;
+    }
+
+    let l = 0,
+      r = ln - 1;
+    while (l < r) {
+      const mid = (l + r) >> 1;
+      if (nums[arr[mid]] >= nums[i]) {
+        r = mid;
+      } else {
+        l = mid + 1;
+      }
+    }
+    pre[i] = arr[l - 1];
+    arr[l] = i;
+  }
+
+  let a = arr.length,
+    prev = arr[a - 1];
+  while (a--) {
+    arr[a] = prev;
+    prev = pre[prev];
+  }
+
+  return arr;
 }
