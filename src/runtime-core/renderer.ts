@@ -4,6 +4,7 @@ import { ShapeFlags } from '../shared/ShapeFlags';
 import { createComponentInstance, setupComponent } from './component';
 import { createAppAPI } from './createApp';
 import { effect } from '../reactivity';
+import { ___console } from '../shared/console';
 
 export function createRenderer(options) {
   const {
@@ -54,7 +55,6 @@ export function createRenderer(options) {
     }
   }
   function patchElement(n1, n2, container, parentComponent, anchor) {
-    console.log('element更新流程');
     const oldProps = n1.props || EMPTY_OBJ;
     const newProps = n2.props || EMPTY_OBJ;
     const el = (n2.el = n1.el);
@@ -136,15 +136,43 @@ export function createRenderer(options) {
       }
     }
     // 新的没了
-    if (i > e2) {
+    else if (i > e2) {
       // 旧的还有
       while (i <= e1) {
         const n1 = c1[i++];
         hostRemove(n1.el);
       }
-    }
+    } else {
+      // 新旧都还有
+      ___console(
+        `======array -> array===== diff ===========`,
+        '\n' + `i:${i}--e1:${e1}--e2:${e2}`
+      );
 
-    // 新旧都还有
+      // const toBePatched = e2 - i + 1;
+      const keyToNewIndexMap = new Map();
+      // const newIndexToOldIndexMap = new Array(toBePatched).fill(0);
+      for (let j = i; j <= e2; j++) {
+        keyToNewIndexMap.set(c2[j].key, j);
+      }
+      for (let j = i; j <= e1; j++) {
+        const n1 = c1[j];
+        if (keyToNewIndexMap.size === 0) {
+          hostRemove(n1.el);
+          continue;
+        }
+        const oldKey = n1.key;
+        const newIndex = keyToNewIndexMap.get(oldKey);
+
+        let n2;
+        if (newIndex && isSameVNodeType(n1, (n2 = c2[newIndex]))) {
+          keyToNewIndexMap.delete(oldKey);
+          patch(n1, n2, container, parentComponent, parentAnchor);
+        } else {
+          hostRemove(n1.el);
+        }
+      }
+    }
   }
   function unMountedChildren(children) {
     for (let i = 0; i < children.length; i++) {
@@ -209,6 +237,8 @@ export function createRenderer(options) {
         const subTree = (instance.subTree = instance.render.call(
           instance.proxy
         ));
+        console.log('初始化subTree:', subTree);
+
         // 也是调用patch
         patch(null, subTree, container, instance, anchor);
         // 处理完毕子树之后，subtree.el 就会有值了
@@ -219,8 +249,10 @@ export function createRenderer(options) {
         const subTree = (instance.subTree = instance.render.call(
           instance.proxy
         ));
+        console.log('更新subTree:', subTree);
         patch(preSubTree, subTree, container, instance, anchor);
       }
+      console.log(`组件vnode:`, initialVNode);
     });
   }
 
