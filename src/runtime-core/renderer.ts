@@ -48,7 +48,7 @@ export function createRenderer(options) {
     if (!n1) {
       mountElement(n2, container, parentComponent); // 初始化逻辑
     } else {
-      patchElement(n1, n2, container);
+      patchElement(n1, n2, container); // 更新逻辑
     }
   }
   function patchElement(n1, n2, container) {
