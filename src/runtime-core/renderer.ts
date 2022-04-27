@@ -1,3 +1,4 @@
+import { EMPTY_OBJ } from './../shared/index';
 import { Fragment, Text } from './vnode';
 import { ShapeFlags } from '../shared/ShapeFlags';
 import { createComponentInstance, setupComponent } from './component';
@@ -52,14 +53,32 @@ export function createRenderer(options) {
   }
   function patchElement(n1, n2, container) {
     console.log('element更新流程');
-    console.log(n1, n2);
+    const oldProps = n1.props || EMPTY_OBJ;
+    const newProps = n2.props || EMPTY_OBJ;
+    const el = (n2.el = n1.el);
+    patchProps(el, oldProps, newProps);
+  }
+  function patchProps(el, oldProps, newProps) {
+    if (oldProps === newProps) return;
+    for (let k in newProps) {
+      const nextVal = newProps[k];
+      const prevVal = oldProps[k];
+      if (nextVal !== prevVal) {
+        hostPatchProp(el, k, prevVal, nextVal);
+      }
+    }
+    for (let k in oldProps) {
+      if (!(k in newProps)) {
+        hostPatchProp(el, k, oldProps[k], null);
+      }
+    }
   }
   function mountElement(vnode, container, parentComponent) {
     const { type, props, children, shapeFlag } = vnode;
     const el: HTMLElement = (vnode.el = hostCreateElement(type));
     for (let k in props) {
       const val = props[k];
-      hostPatchProp(el, k, val);
+      hostPatchProp(el, k, null, val);
     }
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       el.textContent = children;
@@ -103,7 +122,6 @@ export function createRenderer(options) {
           instance.proxy
         ));
         patch(preSubTree, subTree, container, instance);
-        // initialVNode.el = subTree.el;
       }
     });
   }
