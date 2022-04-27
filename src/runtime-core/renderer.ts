@@ -11,6 +11,8 @@ export function createRenderer(options) {
     patchProp: hostPatchProp,
     insert: hostInsert,
     createTextNode: hostCreateTextNode,
+    setElementText: hostSetElementText,
+    remove: hostRemove,
   } = options;
   function render(vnode: any, rootContainer) {
     patch(null, vnode, rootContainer, null);
@@ -48,15 +50,42 @@ export function createRenderer(options) {
     if (!n1) {
       mountElement(n2, container, parentComponent); // 初始化逻辑
     } else {
-      patchElement(n1, n2, container); // 更新逻辑
+      patchElement(n1, n2, container, parentComponent); // 更新逻辑
     }
   }
-  function patchElement(n1, n2, container) {
+  function patchElement(n1, n2, container, parentComponent) {
     console.log('element更新流程');
     const oldProps = n1.props || EMPTY_OBJ;
     const newProps = n2.props || EMPTY_OBJ;
     const el = (n2.el = n1.el);
+    patchChildren(n1, n2, el, parentComponent);
     patchProps(el, oldProps, newProps);
+  }
+  function patchChildren(n1, n2, container, parentComponent) {
+    const { shapeFlag, children: c2 } = n2;
+    const { shapeFlag: prevShapeFlag, children: c1 } = n1;
+    if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      // 新节点是文本
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        // 如果之前的节点是数组，先移除
+        unMountedChildren(c1);
+      }
+      if (c1 !== c2) {
+        hostSetElementText(container, c2);
+      }
+    } else {
+      // 新节点是数组
+      if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+        // 如果之前的节点是文本，先清除
+        hostSetElementText(container, '');
+        mountChildren(c2, container, parentComponent);
+      }
+    }
+  }
+  function unMountedChildren(children) {
+    for (let i = 0; i < children.length; i++) {
+      hostRemove(children[i].el);
+    }
   }
   function patchProps(el, oldProps, newProps) {
     if (oldProps === newProps) return;

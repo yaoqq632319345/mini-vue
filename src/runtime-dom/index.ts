@@ -26,12 +26,22 @@ function insert(el, parent) {
 function createTextNode(text) {
   return document.createTextNode(text);
 }
-
+function remove(el: HTMLElement) {
+  const parent = el.parentNode;
+  if (parent) {
+    parent.removeChild(el);
+  }
+}
+function setElementText(el: HTMLElement, text: string) {
+  el.textContent = text;
+}
 const renderer: any = createRenderer({
   createElement,
   patchProp,
   insert,
   createTextNode,
+  setElementText,
+  remove,
 });
 
 export * from '../runtime-core';
