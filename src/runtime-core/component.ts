@@ -13,6 +13,7 @@ export function createComponentInstance(vnode, parent) {
     emit: () => {},
     slots: {},
     provides: parent ? parent.provides : {},
+    next: null,
     subTree: {},
     isMounted: false,
     parent,
@@ -33,7 +34,7 @@ function setupStatefulComponent(instance: any) {
   } = instance;
 
   // 创建组件实例代理对象，之后在调用this.xxx时返回需要的数据
-  instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandlers);
+  instance.proxy = new Proxy(instance, PublicInstanceProxyHandlers);
 
   if (setup) {
     setCurrentInstance(instance);

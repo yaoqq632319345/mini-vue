@@ -6,7 +6,7 @@ const ProxyPropertiesMap = {
 };
 
 export const PublicInstanceProxyHandlers = {
-  get({ _: instance }, key) {
+  get(instance, key) {
     const { setupState, props } = instance;
     if (hasOwn(setupState, key)) return setupState[key]; // 优先取setup
     else if (hasOwn(props, key)) return props[key]; // 其次取props

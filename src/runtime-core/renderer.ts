@@ -5,6 +5,7 @@ import { createComponentInstance, setupComponent } from './component';
 import { createAppAPI } from './createApp';
 import { effect } from '../reactivity';
 import { ___console } from '../shared/console';
+import { shouldUpdateComponet } from './componentUpdateUtils';
 
 export function createRenderer(options) {
   const {
@@ -239,7 +240,21 @@ export function createRenderer(options) {
 
   // 组件处理逻辑
   function processComponent(n1, n2, container, parentComponent, anchor) {
-    mountComponent(n2, container, parentComponent, anchor); // 初始化逻辑
+    if (!n1) {
+      mountComponent(n2, container, parentComponent, anchor); // 初始化逻辑
+    } else {
+      updateComponent(n1, n2);
+    }
+  }
+  function updateComponent(n1, n2) {
+    const instance = (n2.component = n1.component);
+    if (shouldUpdateComponet(n1, n2)) {
+      instance.next = n2;
+      instance.update();
+    } else {
+      n2.el = n1.el;
+      instance.vnode = n2;
+    }
   }
   function mountComponent(
     initialVNode: any,
@@ -247,14 +262,17 @@ export function createRenderer(options) {
     parentComponent,
     anchor
   ) {
-    const instance = createComponentInstance(initialVNode, parentComponent);
+    const instance = (initialVNode.component = createComponentInstance(
+      initialVNode,
+      parentComponent
+    ));
     setupComponent(instance); // 组件初始化完毕
 
     // 处理子节点
     setupRenderEffect(instance, initialVNode, container, anchor);
   }
   function setupRenderEffect(instance: any, initialVNode, container, anchor) {
-    effect(() => {
+    instance.update = effect(() => {
       if (!instance.isMounted) {
         const subTree = (instance.subTree = instance.render.call(
           instance.proxy
@@ -267,6 +285,11 @@ export function createRenderer(options) {
         initialVNode.el = subTree.el;
         instance.isMounted = true;
       } else {
+        const { next, vnode } = instance;
+        if (next) {
+          next.el = vnode.el;
+          updateComponentPreRender(instance, next);
+        }
         const preSubTree = instance.subTree;
         const subTree = (instance.subTree = instance.render.call(
           instance.proxy
@@ -277,7 +300,11 @@ export function createRenderer(options) {
       // console.log(`组件vnode:`, initialVNode);
     });
   }
-
+  function updateComponentPreRender(instance, nextVNode) {
+    instance.vnode = nextVNode;
+    instance.next = null;
+    instance.props = nextVNode.props;
+  }
   return {
     createApp: createAppAPI(render),
   };
