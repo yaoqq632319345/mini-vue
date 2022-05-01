@@ -6,6 +6,7 @@ import { createAppAPI } from './createApp';
 import { effect } from '../reactivity';
 import { ___console } from '../shared/console';
 import { shouldUpdateComponet } from './componentUpdateUtils';
+import { queueJob } from './scheduler';
 
 export function createRenderer(options) {
   const {
@@ -272,35 +273,42 @@ export function createRenderer(options) {
     setupRenderEffect(instance, initialVNode, container, anchor);
   }
   function setupRenderEffect(instance: any, initialVNode, container, anchor) {
-    instance.update = effect(() => {
-      if (!instance.isMounted) {
-        const subTree = (instance.subTree = instance.render.call(
-          instance.proxy
-        ));
-        // console.log('初始化subTree:', subTree);
+    instance.update = effect(
+      () => {
+        if (!instance.isMounted) {
+          const subTree = (instance.subTree = instance.render.call(
+            instance.proxy
+          ));
+          // console.log('初始化subTree:', subTree);
 
-        // 也是调用patch
-        patch(null, subTree, container, instance, anchor);
-        // 处理完毕子树之后，subtree.el 就会有值了
-        initialVNode.el = subTree.el;
-        instance.isMounted = true;
-      } else {
-        const { next, vnode } = instance;
-        if (next) {
-          next.el = vnode.el;
-          updateComponentPreRender(instance, next);
+          // 也是调用patch
+          patch(null, subTree, container, instance, anchor);
+          // 处理完毕子树之后，subtree.el 就会有值了
+          initialVNode.el = subTree.el;
+          instance.isMounted = true;
+        } else {
+          const { next, vnode } = instance;
+          if (next) {
+            next.el = vnode.el;
+            updateComponentPreRender(instance, next);
+          }
+          const preSubTree = instance.subTree;
+          const subTree = (instance.subTree = instance.render.call(
+            instance.proxy
+          ));
+          console.log('更新');
+
+          // console.log('更新subTree:', subTree);
+          patch(preSubTree, subTree, container, instance, anchor);
         }
-        const preSubTree = instance.subTree;
-        const subTree = (instance.subTree = instance.render.call(
-          instance.proxy
-        ));
-        console.log('更新');
-
-        // console.log('更新subTree:', subTree);
-        patch(preSubTree, subTree, container, instance, anchor);
+        // console.log(`组件vnode:`, initialVNode);
+      },
+      {
+        scheduler() {
+          queueJob(instance.update);
+        },
       }
-      // console.log(`组件vnode:`, initialVNode);
-    });
+    );
   }
   function updateComponentPreRender(instance, nextVNode) {
     instance.vnode = nextVNode;

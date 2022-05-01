@@ -1,14 +1,24 @@
-import { h, ref } from '../../lib/guide-mini-vue.esm.js';
+import {
+  h,
+  ref,
+  nextTick,
+  getCurrentInstance,
+} from '../../lib/guide-mini-vue.esm.js';
 
 export const App = {
   name: 'App',
   setup() {
     const count = ref(1);
-
+    const _this = getCurrentInstance();
     const changeCount = () => {
       for (let i = 0; i < 100; i++) {
         count.value++;
       }
+      console.log(_this);
+
+      nextTick(() => {
+        console.log(_this);
+      });
     };
 
     return { changeCount, count };
