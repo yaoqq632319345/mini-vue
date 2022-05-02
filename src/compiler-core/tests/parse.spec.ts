@@ -14,4 +14,24 @@ describe('Parse', () => {
       });
     });
   });
+
+  describe('解析element', () => {
+    test('element', () => {
+      const ast = baseParse('<div></div>');
+      expect(ast.children[0]).toStrictEqual({
+        type: NodeTypes.ELEMENT,
+        tag: 'div',
+      });
+    });
+  });
+
+  describe('解析text', () => {
+    test('text', () => {
+      const ast = baseParse('some text');
+      expect(ast.children[0]).toStrictEqual({
+        type: NodeTypes.TEXT,
+        content: 'some text',
+      });
+    });
+  });
 });
